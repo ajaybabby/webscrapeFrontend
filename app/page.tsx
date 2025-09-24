@@ -73,7 +73,7 @@ export default function HomePage() {
                 .map((parent) => (
                   <li key={parent.id}>
                     <Link
-                      href={`/categories/${parent.id}`}
+                      href={`/categories/${parent.id}/products`}
                       className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2 font-medium"
                     >
                       <span>→</span>
@@ -85,7 +85,7 @@ export default function HomePage() {
                         .map((child) => (
                           <li key={child.id}>
                             <Link
-                              href={`/categories/${child.id}`}
+                              href={`/categories/${child.id}/products`}
                               className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                             >
                               {child.title}
