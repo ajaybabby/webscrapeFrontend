@@ -108,36 +108,37 @@ export default function ProductPage() {
   if (!product) return <div className="p-8 text-center text-red-500">Product not found</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex flex-col md:flex-row gap-8">
+    <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+        <div className="flex flex-col md:flex-row gap-6 sm:gap-8">
           <div className="md:w-1/3">
             {product.imageUrl ? (
-              <Image
-                src={product.imageUrl}
-                alt={product.title}
-                width={400}
-                height={600}
-                className="rounded-lg shadow-md w-full h-auto object-cover"
-              />
+              <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-md">
+                <Image
+                  src={product.imageUrl}
+                  alt={product.title}
+                  fill={true}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             ) : (
-              <div className="w-full h-[400px] bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500">No Image Available</span>
+              <div className="w-full aspect-[2/3] bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-500 px-4 text-center">No Image Available</span>
               </div>
             )}
           </div>
 
           <div className="md:w-2/3 space-y-4">
-            <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
-            <p className="text-xl text-gray-600">{product.author || "Unknown Author"}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{product.title}</h1>
+            <p className="text-lg sm:text-xl text-gray-600">{product.author || "Unknown Author"}</p>
             
-            <div className="flex items-center gap-4">
-              <p className="text-2xl font-semibold text-gray-900">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-2">
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
                 {product.price ? `${product.price} ${product.currency}` : "Price not available"}
               </p>
               <button
                 onClick={() => favouriteMutation.mutate()}
-                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                 disabled={favouriteMutation.isPending}
               >
                 {favouriteMutation.isPending ? "Adding..." : "❤️ Add to Favourites"}
@@ -153,7 +154,7 @@ export default function ProductPage() {
             <Link
               href={product.sourceUrl}
               target="_blank"
-              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto text-center"
             >
               View on World of Books
             </Link>
@@ -163,31 +164,32 @@ export default function ProductPage() {
 
       {/* Related Products Section */}
       {related && related.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="mt-8 sm:mt-12">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Related Products</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
             {related.map((r) => (
               <Link
                 key={r.id}
                 href={`/product/${r.id}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4"
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-3 sm:p-4 flex flex-col h-full"
               >
                 {r.imageUrl ? (
-                  <Image
-                    src={r.imageUrl}
-                    alt={r.title}
-                    width={200}
-                    height={300}
-                    className="w-full h-48 object-cover rounded-md mb-3"
-                  />
+                  <div className="relative aspect-[2/3] rounded-md overflow-hidden mb-3">
+                    <Image
+                      src={r.imageUrl}
+                      alt={r.title}
+                      fill={true}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 ) : (
-                  <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center mb-3">
-                    <span className="text-gray-500">No Image</span>
+                  <div className="w-full aspect-[2/3] bg-gray-200 rounded-md flex items-center justify-center mb-3">
+                    <span className="text-gray-500 px-2 text-center text-sm">No Image</span>
                   </div>
                 )}
-                <h3 className="font-medium text-gray-900 line-clamp-2">{r.title}</h3>
+                <h3 className="font-medium text-gray-900 line-clamp-2 flex-grow">{r.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">{r.author || "Unknown Author"}</p>
-                <p className="text-sm font-medium text-gray-900 mt-2">
+                <p className="text-lg font-semibold text-gray-900 mt-2">
                   {r.price ? `${r.price} ${r.currency}` : "Price N/A"}
                 </p>
               </Link>

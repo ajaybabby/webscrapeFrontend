@@ -71,7 +71,7 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
           <h1 className="text-3xl font-bold text-gray-800">Products</h1>
           <button
             onClick={() => scrapeMutation.mutate()}
-            className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 sm:px-5 sm:py-2.5 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 disabled:opacity-50 transition duration-200"
             disabled={scrapeMutation.isPending}
           >
             {scrapeMutation.isPending ? "Scraping..." : "Scrape Fresh Data"}
@@ -90,11 +90,14 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
               className="bg-white rounded-xl shadow hover:shadow-lg transition block overflow-hidden"
             >
               {prod.imageUrl ? (
-                <img
-                  src={prod.imageUrl}
-                  alt={prod.title}
-                  className="w-full h-48 object-cover rounded-t-xl"
-                />
+                  <div className="relative w-full h-48 overflow-hidden rounded-t-xl">
+                    <Image
+                      src={prod.imageUrl}
+                      alt={prod.title}
+                      fill
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
               ) : (
                 <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500 rounded-t-xl">
                   No Image
@@ -116,11 +119,11 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Pagination Controls */}
-        <div className="flex justify-center gap-4 mt-10">
+        <div className="flex justify-center gap-4 mt-6 sm:mt-8">
           <button
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
+            className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50 transition duration-200"
           >
             Prev
           </button>
@@ -130,7 +133,7 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
           <button
             onClick={() => setPage((p) => p + 1)}
             disabled={!products || (Array.isArray(products) && products.length < 10)}
-            className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
+            className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50 transition duration-200"
           >
             Next
           </button>

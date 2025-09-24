@@ -64,7 +64,7 @@ export default function SearchPage() {
                 className="mb-2 w-full h-40 object-cover rounded"
               />
             ) : (
-              <div className="mb-2 w-full h-40 bg-gray-200 rounded flex items-center justify-center text-gray-500">
+              <div className="w-full h-40 bg-gray-200 rounded mb-2 flex items-center justify-center text-gray-500">
                 No Image
               </div>
             )}
@@ -78,11 +78,11 @@ export default function SearchPage() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-4 mt-8">
+      <div className="flex justify-center items-center gap-4 mt-6 sm:mt-8">
         {page > 1 && (
           <Link
             href={`/search?q=${query}&page=${page - 1}`}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-200 rounded hover:bg-gray-300 transition duration-200"
           >
             Previous
           </Link>
@@ -91,7 +91,7 @@ export default function SearchPage() {
         {products.length === 10 && (
           <Link
             href={`/search?q=${query}&page=${page + 1}`}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-200 rounded hover:bg-gray-300 transition duration-200"
           >
             Next
           </Link>

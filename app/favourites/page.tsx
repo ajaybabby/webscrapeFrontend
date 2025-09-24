@@ -20,14 +20,14 @@ export default function FavouritesPage() {
     queryFn: fetchFavourites,
   });
 
-  if (isLoading) return <p>Loading favourites...</p>;
+  if (isLoading) return <p className="p-4">Loading favourites...</p>;
   if (isError) return <p className="text-red-500">Error loading favourites</p>;
   if (!data || data.length === 0)
-    return <p>No favourites yet. Go add some ❤️</p>;
+    return <p className="p-4 text-center text-gray-600">No favourites yet. Go add some ❤️</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">My Favourites</h1>
+    <div className="p-4 sm:p-6">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">My Favourites</h1>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {data.map((fav: any) => (
           <Link
@@ -44,7 +44,7 @@ export default function FavouritesPage() {
                 className="mb-2 w-full h-40 object-cover rounded"
               />
             ) : (
-              <div className="mb-2 w-full h-40 bg-gray-200 flex items-center justify-center">
+              <div className="w-full h-40 bg-gray-200 rounded mb-2 flex items-center justify-center text-gray-500">
                 No Image
               </div>
             )}
@@ -54,6 +54,11 @@ export default function FavouritesPage() {
             <p className="text-xs text-gray-600">
               {fav.product.author || "Unknown Author"}
             </p>
+            {fav.product.price && (
+              <p className="text-sm font-bold mt-1">
+                {fav.product.price} {fav.product.currency}
+              </p>
+            )}
           </Link>
         ))}
       </div>

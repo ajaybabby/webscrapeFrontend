@@ -66,38 +66,38 @@ export default function AuthModal() {
           <button onClick={logout} className="text-red-600 hover:underline">Logout</button>
         </div>
       ) : (
-        <button onClick={toggleModal} className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-          Login / Register
-        </button>
+        <button onClick={toggleModal} className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded hover:bg-blue-700 transition duration-200">
+            Login / Register
+          </button>
       )}
 
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow max-w-sm w-full relative">
-            <button className="absolute top-2 right-2 text-gray-500" onClick={toggleModal}>
+          <div className="bg-white p-5 sm:p-6 rounded-lg shadow-lg max-w-sm w-full relative animate-fade-in transition duration-300">
+            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors" onClick={toggleModal}>
               ✖
             </button>
-            <h2 className="text-2xl font-bold mb-4">{isRegister ? 'Register' : 'Login'}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">{isRegister ? 'Register' : 'Login'}</h2>
             {error && <p className="text-red-600 mb-2">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-4">
               {isRegister && (
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                  required
-                />
-              )}
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                    required
+                  />
+                )}
               <input
                 type="email"
                 name="email"
                 placeholder="Email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full p-2 border rounded"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
                 required
               />
               <input
@@ -106,17 +106,18 @@ export default function AuthModal() {
                 placeholder="Password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full p-2 border rounded"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
                 required
               />
               <button
                 type="submit"
-                className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
+                className="w-full bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition duration-200 font-medium"
+                disabled={registerMutation.isPending || loginMutation.isPending}
               >
-                {isRegister ? 'Register' : 'Login'}
+                {registerMutation.isPending || loginMutation.isPending ? 'Processing...' : (isRegister ? 'Register' : 'Login')}
               </button>
             </form>
-            <p className="mt-2 text-sm text-gray-600 text-center">
+            <p className="mt-3 text-sm text-gray-600 text-center">
               {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
                 onClick={() => setIsRegister(!isRegister)}
