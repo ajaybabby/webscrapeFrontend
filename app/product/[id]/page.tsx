@@ -1,8 +1,22 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+
+type Product = {
+  id: string;
+  sourceId: string;
+  title: string;
+  author: string | null;
+  price: number | null;
+  currency: string;
+  imageUrl: string;
+  sourceUrl: string;
+  lastScrapedAt?: string | null;
+};
 
 async function fetchProduct(id: string) {
   const res = await fetch(`/api/products/${id}`);
@@ -10,66 +24,250 @@ async function fetchProduct(id: string) {
   return res.json();
 }
 
+async function fetchRelated(id: string) {
+  const res = await fetch(`/api/products/${id}/related`);
+  if (!res.ok) throw new Error("Failed to fetch related products");
+  return res.json() as Promise<Product[]>;
+}
+
+async function addToFavourites(productId: string) {
+  const res = await fetch(`/api/favourites/${productId}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to add favourite");
+  return res.json();
+}
+
+async function fetchReviews(productId: string) {
+  const res = await fetch(`/api/reviews/product/${productId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to fetch reviews");
+  return res.json();
+}
+
+async function addReview(productId: string, review: { rating: number; comment?: string }) {
+  const res = await fetch(`/api/reviews/${productId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify(review),
+  });
+  if (!res.ok) throw new Error("Failed to add review");
+  return res.json();
+}
+
 export default function ProductPage() {
   const params = useParams();
-  const id = params?.id as string;
+  const queryClient = useQueryClient();
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => fetchProduct(id),
-    enabled: !!id,
+  const { data: product, isLoading } = useQuery({
+    queryKey: ["product", params.id],
+    queryFn: () => fetchProduct(params.id as string),
   });
 
-  if (isLoading) return <p className="p-4">Loading product...</p>;
-  if (error) return <p className="p-4 text-red-500">Error loading product</p>;
+  const { data: related } = useQuery({
+    queryKey: ["related", params.id],
+    queryFn: () => fetchRelated(params.id as string),
+    enabled: !!product,
+  });
+
+  const favouriteMutation = useMutation({
+    mutationFn: () => addToFavourites(params.id as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favourites"] });
+      alert("✅ Added to favourites");
+    },
+  });
+
+  const { data: reviews, isLoading: isLoadingReviews } = useQuery({
+    queryKey: ["reviews", params.id],
+    queryFn: () => fetchReviews(params.id as string),
+  });
+
+  const addReviewMutation = useMutation({
+    mutationFn: (review: { rating: number; comment?: string }) =>
+      addReview(params.id as string, review),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews", params.id] });
+      setComment("");
+      setRating(5);
+    },
+  });
+
+  if (isLoading) return <div className="p-8 text-center">Loading product...</div>;
+  if (!product) return <div className="p-8 text-center text-red-500">Product not found</div>;
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row gap-6">
-        {data.imageUrl && (
-          <Image
-            src={data.imageUrl}
-            alt={data.title}
-            width={200}
-            height={300}
-            className="rounded shadow"
-          />
-        )}
-        <div>
-          <h1 className="text-3xl font-bold">{data.title}</h1>
-          <p className="text-lg text-gray-600">{data.author}</p>
-          <p className="mt-2 font-bold text-xl">
-            {data.price} {data.currency}
-          </p>
-          {data.details && (
-            <div className="mt-4">
-              <p>{data.details.description}</p>
-              <p className="text-sm text-gray-500 mt-2">
-                ISBN: {data.details.isbn}
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="md:w-1/3">
+            {product.imageUrl ? (
+              <Image
+                src={product.imageUrl}
+                alt={product.title}
+                width={400}
+                height={600}
+                className="rounded-lg shadow-md w-full h-auto object-cover"
+              />
+            ) : (
+              <div className="w-full h-[400px] bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-500">No Image Available</span>
+              </div>
+            )}
+          </div>
+
+          <div className="md:w-2/3 space-y-4">
+            <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
+            <p className="text-xl text-gray-600">{product.author || "Unknown Author"}</p>
+            
+            <div className="flex items-center gap-4">
+              <p className="text-2xl font-semibold text-gray-900">
+                {product.price ? `${product.price} ${product.currency}` : "Price not available"}
               </p>
-              <p className="text-sm text-gray-500">
-                Language: {data.details.language} | Format: {data.details.format}
-              </p>
+              <button
+                onClick={() => favouriteMutation.mutate()}
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                disabled={favouriteMutation.isPending}
+              >
+                {favouriteMutation.isPending ? "Adding..." : "❤️ Add to Favourites"}
+              </button>
             </div>
-          )}
+
+            {product.lastScrapedAt && (
+              <p className="text-sm text-gray-500">
+                Last updated: {new Date(product.lastScrapedAt).toLocaleString()}
+              </p>
+            )}
+
+            <Link
+              href={product.sourceUrl}
+              target="_blank"
+              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View on World of Books
+            </Link>
+          </div>
         </div>
       </div>
 
-      {data.reviews && data.reviews.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Reviews</h2>
-          <ul className="space-y-3">
-            {data.reviews.map((review: any) => (
-              <li key={review.id} className="border p-3 rounded">
-                <p className="font-semibold">
-                  {review.user} — ⭐ {review.rating}
+      {/* Related Products Section */}
+      {related && related.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {related.map((r) => (
+              <Link
+                key={r.id}
+                href={`/product/${r.id}`}
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4"
+              >
+                {r.imageUrl ? (
+                  <Image
+                    src={r.imageUrl}
+                    alt={r.title}
+                    width={200}
+                    height={300}
+                    className="w-full h-48 object-cover rounded-md mb-3"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center mb-3">
+                    <span className="text-gray-500">No Image</span>
+                  </div>
+                )}
+                <h3 className="font-medium text-gray-900 line-clamp-2">{r.title}</h3>
+                <p className="text-sm text-gray-600 mt-1">{r.author || "Unknown Author"}</p>
+                <p className="text-sm font-medium text-gray-900 mt-2">
+                  {r.price ? `${r.price} ${r.currency}` : "Price N/A"}
                 </p>
-                <p>{review.comment}</p>
-              </li>
+              </Link>
             ))}
-          </ul>
+          </div>
         </div>
       )}
+
+      {/* Reviews Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
+        <h2 className="text-2xl font-bold mb-6">Reviews</h2>
+
+        {/* Add Review Form */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            addReviewMutation.mutate({ rating, comment });
+          }}
+          className="mb-8 p-4 border rounded-lg bg-gray-50"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block mb-2 font-semibold text-gray-700">Rating</label>
+              <select
+                value={rating}
+                onChange={(e) => setRating(Number(e.target.value))}
+                className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                {[1, 2, 3, 4, 5].map((r) => (
+                  <option key={r} value={r}>
+                    {"⭐".repeat(r)} ({r})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-2 font-semibold text-gray-700">Comment</label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                rows={3}
+                placeholder="Share your thoughts..."
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={addReviewMutation.isPending}
+            className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {addReviewMutation.isPending ? "Submitting..." : "Submit Review"}
+          </button>
+        </form>
+
+        {/* Reviews List */}
+        {isLoadingReviews ? (
+          <div className="text-center py-4">Loading reviews...</div>
+        ) : reviews?.length === 0 ? (
+          <p className="text-center text-gray-600">No reviews yet. Be the first!</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews?.map((rev: any) => (
+              <div key={rev.id} className="p-4 border rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">{rev.user?.name || "Anonymous"}</span>
+                    <span className="text-yellow-500">{"⭐".repeat(rev.rating)}</span>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {new Date(rev.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-gray-700">{rev.comment || "No comment"}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
